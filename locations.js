@@ -561,6 +561,15 @@ class MountableVolumeAppInfo extends LocationAppInfo {
         const removable = this.mount ?? this.volume;
         this.name = removable.get_name();
         this.icon = removable.get_icon();
+        if (this.icon instanceof Gio.FileIcon) {
+            const {icon} = this;
+            // An autorun.inf icon may point to a file that doesn't exist
+            icon.get_file().query_info_async(Gio.FILE_ATTRIBUTE_STANDARD_TYPE,
+                Gio.FileQueryInfoFlags.NONE, GLib.PRIORITY_LOW, this.cancellable).catch(e => {
+                if (e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND) && this.icon === icon)
+                    this.icon = this.volume.get_icon();
+            });
+        }
 
         this.location = this.mount?.get_default_location() ??
             this.volume.get_activation_root();
