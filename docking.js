@@ -313,6 +313,7 @@ const DockedDash = GObject.registerClass({
                 y_align: Clutter.ActorAlign.CENTER,
             },
         });
+        this.dockState = Main.layoutManager._startingUp ? State.HIDDEN : State.SHOWN;
 
         // This is the actor whose hover status us tracked for autohide
         this._box = new St.BoxLayout({
