@@ -231,8 +231,7 @@ export class GlobalSignalsHandler extends BasicHandler {
     }
 
     _monitorDestruction(object) {
-        if (!(object instanceof GObject.Object) ||
-            !GObject.signal_lookup('destroy', object.constructor.$gtype))
+        if (!(object instanceof Clutter.Actor))
             return;
 
         this._destroyHandlersIds ??= new Map();
