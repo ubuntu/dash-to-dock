@@ -508,9 +508,52 @@ const DockedDash = GObject.registerClass({
             this._onOverviewShowing();
 
         this._updateAutoHideBarriers();
+
+        // The dock may be (re)created while the stage is not being painted
+        // (session start, monitors-changed after a VT switch or a resume).
+        // Re-sync its visibility once things have settled.
+        this._scheduleVisibilityResync();
+    }
+
+    // Show/hide transitions started while the stage is not painting may never
+    // complete, leaving dockState stuck in SHOWING/HIDING. Since the intellihide
+    // status does not change afterwards, nothing fixes it until the pointer
+    // hovers the dock. Re-evaluate the visibility a couple of times after init.
+    _scheduleVisibilityResync() {
+        this._cancelVisibilityResync();
+        this._resyncTimeoutIds = [1000, 3000].map(ms => {
+            const id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => {
+                this._resyncTimeoutIds = this._resyncTimeoutIds.filter(i => i !== id);
+                this._resyncVisibility();
+                return GLib.SOURCE_REMOVE;
+            });
+            return id;
+        });
+    }
+
+    _cancelVisibilityResync() {
+        (this._resyncTimeoutIds ?? []).forEach(id => GLib.source_remove(id));
+        this._resyncTimeoutIds = [];
+    }
+
+    _resyncVisibility() {
+        if (Main.overview.visibleTarget || this._menuOpened)
+            return;
+
+        // Drop any pending transition and derive the state from the slider position
+        this._removeAnimations();
+        this.dockState = this._slider.slideX >= 1 ? State.SHOWN : State.HIDDEN;
+        this._delayedHide = false;
+        this._box.sync_hover();
+
+        if (this.intellihideEnabled)
+            this._intellihide.forceUpdate();
+        this.updateDashVisibility();
     }
 
     _onDestroy() {
+        this._cancelVisibilityResync();
+
         // The dash, intellihide and themeManager have global signals as well internally
         this.dash.destroy();
         this._intellihide.destroy();
