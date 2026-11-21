@@ -939,7 +939,8 @@ const DockedDash = GObject.registerClass({
     }
 
     _animateOut(time, delay) {
-        if (this.dockState === State.HIDDEN)
+        // Recover if the dock state is stale but the slider is still visible.
+        if (this.dockState === State.HIDDEN && this._slider.slide_x === 0)
             return;
 
         this.dockState = State.HIDING;
