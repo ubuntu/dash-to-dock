@@ -115,7 +115,7 @@ const baseIconSizes = [16, 22, 24, 32, 48, 64, 96, 128];
  * - show running and/or favorite applications
  * - hide showApps label when the custom menu is shown.
  * - add scrollview
- *   ensure actor is visible on keyfocus inseid the scrollview
+ * - ensure actor is visible on key-focus inside the scrollview
  * - add 128px icon size, might be useful for hidpi display
  * - sync minimization application target position.
  * - keep running apps ordered.
