@@ -853,10 +853,9 @@ export const DockAbstractAppIcon = GObject.registerClass({
     _minimizeWindow(param) {
         // Param true make all app windows minimize
         const windows = this.getInterestingWindows();
-        const currentWorkspace = global.workspace_manager.get_active_workspace();
         for (let i = 0; i < windows.length; i++) {
             const w = windows[i];
-            if (w.get_workspace() === currentWorkspace && w.showing_on_its_workspace()) {
+            if (w.get_workspace()?.active && w.showing_on_its_workspace()) {
                 w.minimize();
                 // Just minimize one window. By specification it should be the
                 // focused window on the current workspace.
@@ -880,13 +879,12 @@ export const DockAbstractAppIcon = GObject.registerClass({
 
         // then activate all other app windows in the current workspace
         const windows = this.getInterestingWindows();
-        const activeWorkspace = global.workspace_manager.get_active_workspace_index();
 
         if (windows.length <= 0)
             return;
 
         for (let i = windows.length - 1; i >= 0; i--) {
-            if (windows[i].get_workspace()?.index() === activeWorkspace)
+            if (windows[i].get_workspace()?.active)
                 Main.activateWindow(windows[i]);
         }
     }
