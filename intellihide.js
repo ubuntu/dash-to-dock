@@ -250,9 +250,7 @@ export class Intellihide {
     // Optionally skip windows of other applications
     _intellihideFilterInteresting(wa) {
         const metaWin = wa.get_meta_window();
-        const currentWorkspace = global.workspace_manager.get_active_workspace_index();
         const workspace = metaWin.get_workspace();
-        const workspaceIndex = workspace.index();
 
         // Depending on the intellihide mode, exclude non-relevent windows
         switch (Docking.DockManager.settings.intellihideMode) {
@@ -300,7 +298,7 @@ export class Intellihide {
             break;
         }
 
-        if (workspaceIndex === currentWorkspace && metaWin.showing_on_its_workspace())
+        if (workspace?.active && metaWin.showing_on_its_workspace())
             return true;
         else
             return false;
