@@ -2490,9 +2490,6 @@ export class DockManager {
         this._vfuncInjections.addWithLabel(Labels.MAIN_DASH, ControlsManagerLayout.prototype,
             'allocate', function (container) {
                 /* eslint-disable no-invalid-this */
-                const oldPostAllocation = this._runPostAllocation;
-                this._runPostAllocation = () => {};
-
                 const monitor = Main.layoutManager.findMonitorForActor(container);
                 const workArea = Main.layoutManager.getWorkAreaForMonitor(monitor.index);
                 const startX = workArea.x - monitor.x;
@@ -2507,15 +2504,21 @@ export class DockManager {
                 maybeAdjustBoxToDock(undefined, workAreaBox, spacing);
                 const oldStartY = workAreaBox.y1;
 
+                const oldPostAllocation = this._runPostAllocation;
                 const propertyInjections = new Utils.PropertyInjectionsHandler();
                 propertyInjections.add(Main.layoutManager.panelBox, 'height', {value: startY});
 
                 if (Main.layoutManager.panelBox.y === Main.layoutManager.primaryMonitor.y)
                     workAreaBox.y1 -= oldStartY;
 
-                this.vfunc_allocate(container, workAreaBox);
+                this._runPostAllocation = () => {};
+                try {
+                    this.vfunc_allocate(container, workAreaBox);
+                } finally {
+                    propertyInjections.destroy();
+                    this._runPostAllocation = oldPostAllocation;
+                }
 
-                propertyInjections.destroy();
                 workAreaBox.y1 = oldStartY;
 
                 const adjustActorHorizontalAllocation = actor => {
@@ -2531,7 +2534,6 @@ export class DockManager {
                 [this._searchEntry, this._workspacesThumbnails, this._searchController].forEach(
                     actor => adjustActorHorizontalAllocation(actor));
 
-                this._runPostAllocation = oldPostAllocation;
                 this._runPostAllocation();
                 /* eslint-enable no-invalid-this */
             });
