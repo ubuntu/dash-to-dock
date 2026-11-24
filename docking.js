@@ -500,6 +500,9 @@ const DockedDash = GObject.registerClass({
                 (this.translation_y = -this.height));
         }
 
+        // Docks created after startup are fully shown (see slide_x above), so
+        // keep the state in sync or _animateOut() would be a no-op.
+        this.dockState = this._slider.slideX > 0 ? State.SHOWN : State.HIDDEN;
         this._updateVisibilityMode();
 
         // In case we are already inside the overview when the extension is loaded,
